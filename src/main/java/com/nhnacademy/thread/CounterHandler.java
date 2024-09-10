@@ -16,6 +16,8 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class CounterHandler implements Runnable  {
+
+    volatile boolean interrupted;
     private final long countMaxSize;
 
     private long count;
@@ -29,6 +31,10 @@ public class CounterHandler implements Runnable  {
         this.count=0l;
     }
 
+    public boolean isInterrupted(){
+        return interrupted;
+    }
+
     @Override
     public void run() {
         do {
@@ -38,11 +44,16 @@ public class CounterHandler implements Runnable  {
                 log.debug("thread:{},state:{},count:{}",Thread.currentThread().getName(),Thread.currentThread().getState(),count);
             } catch (InterruptedException e) {
                 log.debug("{} - state - {}  - interupted 발생",Thread.currentThread().getName(),Thread.currentThread().getState());
-                throw new RuntimeException(e);
+                // interrupted 발생됐을 때
+//                throw new RuntimeException(e);
+                // isInterrupted 잡으면 Interrupted 값 초기화 됌
+                Thread.currentThread().interrupt();
+                break;
             }
 
         //TODO#2 해당 thread가 isInterrupted() 상태가 false 일 while loop를 실행 할 수 있도록 조건을 추가하세요
-        }while (count<countMaxSize);
+        }while (count<countMaxSize &&  isInterrupted() == false );
+
 
     }
 }

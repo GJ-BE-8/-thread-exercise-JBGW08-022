@@ -14,6 +14,9 @@ package com.nhnacademy.thread;
 
 import lombok.extern.slf4j.Slf4j;
 
+import javax.management.monitor.Monitor;
+import java.util.Objects;
+
 @Slf4j
 public class CounterHandler implements Runnable  {
     private final Object monitor;
@@ -23,9 +26,13 @@ public class CounterHandler implements Runnable  {
 
     public CounterHandler(long countMaxSize, Object monitor) {
         //TODO#4 countMaxSize<=0 or monitor 객체가 null 이면 IllegalArgumentException이 발생 합니다.
-
-
+        if(countMaxSize <= 0 || Objects.isNull(monitor)){
+            throw new IllegalArgumentException();
+        }
         //TODO#5  countMaxSize, count, monitor 변수를 초기화 합니다.
+        this.countMaxSize = countMaxSize;
+        this.count = 0L;
+        this.monitor = monitor;
 
     }
 
@@ -34,6 +41,17 @@ public class CounterHandler implements Runnable  {
         //TODO#6 Thread에 의해서 run() method가 호출되면 무한 대기 합니다. monitor객체를 이용해서 구현하세요
         //monitor는 여러 Thread가 동시에 접근할 수 없도록  접근을 제어해야 합니다.
 
+        // 서로 다른 쓰레드들끼리 통신하려면 매개체 하나 필요
+
+        synchronized (monitor){
+            try {
+                monitor.wait(); // -> thread는 대기상태로 가고 monitor 객체의 monitor는 반환해준다.
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        log.info("start after synchronized");
 
         do {
             try {
